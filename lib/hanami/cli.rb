@@ -11,7 +11,10 @@ module Hanami
     module ClassMethods
       def call(arguments: ARGV)
         command = Hanami::Cli.command(arguments)
-        exit(1) if command.nil?
+        if command.nil?
+          render_commands_description(arguments)
+          exit(1)
+        end
 
         command.new.call
       end
@@ -20,7 +23,10 @@ module Hanami
       # hanami gem
       def run(arguments: ARGV)
         command = Hanami::Cli.command(arguments)
-        return false if command.nil?
+        if command.nil?
+          render_commands_description(arguments)
+          return false
+        end
 
         command.new.call
         true
@@ -28,6 +34,33 @@ module Hanami
 
       def register(*names, command)
         names.each { |name| Hanami::Cli.register(name, command) }
+      end
+
+      private
+
+      def render_commands_description(arguments)
+        commands = if arguments.empty?
+          commands_grouped.keys
+        else
+          commands_grouped[arguments.join(' ')].to_a
+        end
+        commands.each do |command|
+          next if command.nil?
+          puts "#{binary_file} #{command}"
+        end
+      end
+
+      def commands_grouped
+        Hanami::Cli.commands.keys.group_by do |key|
+          key = key.split(' ').first
+          unless key[0] == '-'
+            key
+          end
+        end
+      end
+
+      def binary_file
+        $0.split("/").last
       end
     end
 
@@ -40,6 +73,10 @@ module Hanami
     def self.command(arguments)
       command = arguments.join(" ")
       @__commands.fetch(command, nil)
+    end
+
+    def self.commands
+      @__commands
     end
   end
 end

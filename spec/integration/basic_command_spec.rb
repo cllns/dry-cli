@@ -17,6 +17,14 @@ RSpec.describe "Basic command" do
       result = system("foo unknown")
       expect(result).to be(false)
     end
+
+    it "prints in console the description" do
+      output = `foo`
+
+      expect(output).to match("foo hello")
+      expect(output).to match("foo version")
+      expect(output).to match("foo generate")
+    end
   end
 
   context "subcommands" do
@@ -33,6 +41,15 @@ RSpec.describe "Basic command" do
     it "fails for unknown subcommand" do
       result = system("foo generate unknown")
       expect(result).to be(false)
+    end
+
+    it "prints in console the description" do
+      output = `foo generate`
+
+      expect(output).to match("foo generate --help")
+      expect(output).to match("foo generate model")
+      expect(output).to match("foo generate action")
+      expect(output).to match("foo generate webpack")
     end
   end
 
